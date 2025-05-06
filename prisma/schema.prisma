@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id   Int       @id @default(autoincrement())
+  email     String    @unique @db.VarChar(255)
+  user_name String
+  password  String?
+  role      String    @default("seeker")
+  status    String    @default("active")
+  img_url   String?
+  dob       DateTime? @db.Date
+  address   String?
+
+  cvs          Cv[]
+  applications JobApplication[]
+
+  @@map("users")
+}
+
+model Industry {
+  industry_id   String @id @db.VarChar(3)
+  industry_name String
+
+  jobs Job[]
+
+  @@map("industries")
+}
+
+model JobFunction {
+  job_function_id   String @id @db.VarChar(3)
+  job_function_name String
+
+  subfunctions JobSubfunction[]
+  jobs         Job[]
+
+  @@map("job_functions")
+}
+
+model JobSubfunction {
+  job_subfunction_id   String @db.VarChar(3)
+  job_subfunction_name String
+  job_function_id      String
+
+  job_function JobFunction @relation(fields: [job_function_id], references: [job_function_id])
+  jobs         Job[]
+
+  @@id([job_function_id, job_subfunction_id])
+  @@map("job_subfunctions")
+}
+
+model Job {
+  job_id             String   @id @db.VarChar(11)
+  job_title          String
+  description        String
+  salary_range_start Float
+  salary_range_end   Float
+  close_date         DateTime @db.Date
+  industry_id        String   @db.VarChar(3)
+  job_function_id    String   @db.VarChar(3)
+  job_subfunction_id String   @db.VarChar(3)
+  location           String
+  status             String   @default("active")
+  employment_type    String
+
+  industry     Industry         @relation(fields: [industry_id], references: [industry_id])
+  job_function JobFunction      @relation(fields: [job_function_id], references: [job_function_id])
+  subfunction  JobSubfunction   @relation(fields: [job_function_id, job_subfunction_id], references: [job_function_id, job_subfunction_id])
+  applications JobApplication[]
+
+  @@map("jobs")
+}
+
+model Cv {
+  cv_id         Int      @id @default(autoincrement())
+  user_id       Int
+  cv_url        String
+  uploaded_time DateTime @default(now()) @db.Timestamp(6)
+  cv_title      String?
+  status        String?  @default("active")
+
+  user         User             @relation(fields: [user_id], references: [user_id])
+  applications JobApplication[]
+
+  @@map("cvs")
+}
+
+model JobApplication {
+  application_id Int      @id @default(autoincrement())
+  job_id         String   @db.VarChar(11)
+  user_id        Int
+  cv_id          Int
+  applied_time   DateTime @default(now()) @db.Timestamp(6)
+  status         String   @default("pending")
+
+  job  Job  @relation(fields: [job_id], references: [job_id])
+  user User @relation(fields: [user_id], references: [user_id])
+  cv   Cv   @relation(fields: [cv_id], references: [cv_id])
+
+  @@map("job_applications")
+}
+
+enum Role {
+  seeker
+  moderator
+  admin
+}
+
+enum UserStatus {
+  deactivated
+  active
+}
+
+enum JobStatus {
+  deactivated
+  active
+  prioritized
+}
+
+enum EmploymentType {
+  permanent
+  contract
+  temporary
+}
+
+enum ApplicationStatus {
+  pending
+  reviewed
+  rejected
+  hired
+}
+
+enum CvStatus {
+  deactivated
+  active
+}
