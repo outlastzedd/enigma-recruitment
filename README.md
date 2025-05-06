@@ -2,17 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Create the project :
 
-First, run the development server:
-
 ```bash
+
 npx create-next-app@latest
 npm install prisma @prisma/client
 npx prisma init
 
-# add prisma file 
+# setting the database connection in .env file.
+# add prisma file.
 
 npx prisma generate
 npx prisma migrate dev --name init
 
-# add data from query file
+# after add data from query file, the project with database structure and database connection are all done.
 ```
