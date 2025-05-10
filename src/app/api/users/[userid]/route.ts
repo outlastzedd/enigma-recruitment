@@ -4,8 +4,9 @@ import {PrismaClient} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request, {params}: {params: {userid: string}}) {
+export async function GET(request: Request, context: {params: {userid: string}}) {
     try {
+        const {params} = await context;
         const userid = parseInt(params.userid, 10);
         if (isNaN(userid)) {
             return NextResponse.json({error: "Invalid user id"}, {status: 400});

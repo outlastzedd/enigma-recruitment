@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
@@ -11,85 +9,121 @@ datasource db {
 }
 
 model User {
-  user_id   Int       @id @default(autoincrement())
-  email     String    @unique @db.VarChar(255)
-  user_name String
-  password  String?
-  role      String    @default("seeker")
-  status    String    @default("active")
-  img_url   String?
-  dob       DateTime? @db.Date
-  address   String?
-
-  cvs          Cv[]
-  applications JobApplication[]
+  id            Int              @id @default(autoincrement()) @map("user_id")
+  email         String           @unique @db.VarChar(255)
+  name          String
+  password      String?
+  role          String           @default("seeker")
+  status        String           @default("active")
+  image         String?
+  dob           DateTime?        @db.Date
+  address       String?
+  emailVerified DateTime?        @map("email_verified")
+  accounts      Account[]
+  cvs           Cv[]
+  applications  JobApplication[]
+  sessions      Session[]
 
   @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+//manage login session
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 model Industry {
   industry_id   String @id @db.VarChar(3)
   industry_name String
-
-  jobs Job[]
+  jobs          Job[]
 
   @@map("industries")
 }
 
 model JobFunction {
-  job_function_id   String @id @db.VarChar(3)
+  job_function_id   String           @id @db.VarChar(3)
   job_function_name String
-
-  subfunctions JobSubfunction[]
-  jobs         Job[]
+  subfunctions      JobSubfunction[]
+  jobs              Job[]
 
   @@map("job_functions")
 }
 
 model JobSubfunction {
-  job_subfunction_id   String @db.VarChar(3)
+  job_subfunction_id   String      @db.VarChar(3)
   job_subfunction_name String
   job_function_id      String
-
-  job_function JobFunction @relation(fields: [job_function_id], references: [job_function_id])
-  jobs         Job[]
+  job_function         JobFunction @relation(fields: [job_function_id], references: [job_function_id])
+  jobs                 Job[]
 
   @@id([job_function_id, job_subfunction_id])
   @@map("job_subfunctions")
 }
 
 model Job {
-  job_id             String   @id @db.VarChar(11)
+  job_id             String           @id @db.VarChar(11)
   job_title          String
   description        String
   salary_range_start Float
   salary_range_end   Float
-  close_date         DateTime @db.Date
-  industry_id        String   @db.VarChar(3)
-  job_function_id    String   @db.VarChar(3)
-  job_subfunction_id String   @db.VarChar(3)
+  close_date         DateTime         @db.Date
+  industry_id        String           @db.VarChar(3)
+  job_function_id    String           @db.VarChar(3)
+  job_subfunction_id String           @db.VarChar(3)
   location           String
-  status             String   @default("active")
+  status             String           @default("active")
   employment_type    String
-
-  industry     Industry         @relation(fields: [industry_id], references: [industry_id])
-  job_function JobFunction      @relation(fields: [job_function_id], references: [job_function_id])
-  subfunction  JobSubfunction   @relation(fields: [job_function_id, job_subfunction_id], references: [job_function_id, job_subfunction_id])
-  applications JobApplication[]
+  applications       JobApplication[]
+  industry           Industry         @relation(fields: [industry_id], references: [industry_id])
+  job_function       JobFunction      @relation(fields: [job_function_id], references: [job_function_id])
+  subfunction        JobSubfunction   @relation(fields: [job_function_id, job_subfunction_id], references: [job_function_id, job_subfunction_id])
 
   @@map("jobs")
 }
 
 model Cv {
-  cv_id         Int      @id @default(autoincrement())
+  cv_id         Int              @id @default(autoincrement())
   user_id       Int
   cv_url        String
-  uploaded_time DateTime @default(now()) @db.Timestamp(6)
+  uploaded_time DateTime         @default(now()) @db.Timestamp(6)
   cv_title      String?
-  status        String?  @default("active")
-
-  user         User             @relation(fields: [user_id], references: [user_id])
-  applications JobApplication[]
+  status        String?          @default("active")
+  user          User             @relation(fields: [user_id], references: [id])
+  applications  JobApplication[]
 
   @@map("cvs")
 }
@@ -101,10 +135,9 @@ model JobApplication {
   cv_id          Int
   applied_time   DateTime @default(now()) @db.Timestamp(6)
   status         String   @default("pending")
-
-  job  Job  @relation(fields: [job_id], references: [job_id])
-  user User @relation(fields: [user_id], references: [user_id])
-  cv   Cv   @relation(fields: [cv_id], references: [cv_id])
+  cv             Cv       @relation(fields: [cv_id], references: [cv_id])
+  job            Job      @relation(fields: [job_id], references: [job_id])
+  user           User     @relation(fields: [user_id], references: [id])
 
   @@map("job_applications")
 }

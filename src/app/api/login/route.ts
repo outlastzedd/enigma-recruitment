@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not defined');
     throw new Error('JWT_SECRET is not defined');
 }
 const prisma = new PrismaClient();
@@ -23,9 +24,17 @@ export async function POST(request: Request) {
 
         const user = await prisma.user.findUnique({
             where: {email: email},
+            select: {
+                user_id: true,
+                user_name: true,
+                email: true,
+                role: true,
+                status: true,
+                password: true
+            }
         });
 
-        if (!user || user.status !== 'active' || !user.password) {
+        if (!user || user.status !== 'active') {
             return NextResponse.json(
                 {error: 'Invalid email or password.'},
                 {status: 401}

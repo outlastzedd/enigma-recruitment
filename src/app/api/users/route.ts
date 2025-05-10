@@ -1,7 +1,7 @@
 // src/app/api/users/route.ts
 import {NextResponse} from 'next/server';
 import {PrismaClient} from '@prisma/client';
-import jwt from jsonwebtoken;
+import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
