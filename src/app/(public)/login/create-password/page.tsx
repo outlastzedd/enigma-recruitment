@@ -5,6 +5,7 @@ import { createPass } from 'enigma/services/userServices';
 import styles from './ResetPasswordPage.module.css';
 import Link from 'next/link';
 import {auth} from "enigma/auth";
+import {useRouter} from "next/navigation"
 
 export default async function CreatePasswordPage() {
     const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ export default async function CreatePasswordPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const session = await auth();
+    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,6 +26,7 @@ export default async function CreatePasswordPage() {
             setSuccess('Password created successfully. You can now log in with your new password.');
             setEmail('');
             setPassword('');
+            router.push('/');
         } catch (err: any) {
             setError(err.message || 'Failed to create password');
         } finally {
@@ -33,26 +36,16 @@ export default async function CreatePasswordPage() {
 
     return (
         <div className={styles.container}>
-            <h1 className={styles.title}>Reset Password</h1>
+            <h1 className={styles.title}>Create Password</h1>
             <h2>Current user: {username}</h2>
             <form onSubmit={handleSubmit}>
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>Old Password</label>
-                    <input
-                        className={styles.input}
-                        type="password"
-                        value={oldPassword}
-                        onChange={e => setOldPassword(e.target.value)}
-                        required
-                    />
-                </div>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>New Password</label>
                     <input
                         className={styles.input}
                         type="password"
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
                         required
                     />
                 </div>
