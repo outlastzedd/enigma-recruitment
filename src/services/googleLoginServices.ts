@@ -8,7 +8,7 @@ import { signIn } from "enigma/auth";
 
 async function GoogleAuthenticate() {
     try {
-        await signIn('google', { callbackUrl: '/'});
+        await signIn('google', { redirectTo: '/login/create-password'});
         return undefined;
     } catch (error) {
         if (error instanceof AuthError) {

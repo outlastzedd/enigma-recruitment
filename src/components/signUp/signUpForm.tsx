@@ -11,6 +11,10 @@ import {
     styled,
 } from '@mui/material';
 import {register} from "enigma/services/userServices";
+import {z} from 'zod';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {RegisterSchema} from "enigma/schemas";
+import {useForm} from "react-hook-form";
 
 const PrimaryButton = styled(Button)({
     backgroundColor: '#2494B6',
@@ -46,22 +50,42 @@ const GoogleButton = styled(Button)({
 });
 
 export const SignUpForm: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState("");
     const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
+    // Initialize the form with react-hook-form and zod
+    const form = useForm<z.infer<typeof RegisterSchema>>({
+        resolver: zodResolver(RegisterSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+            name: ''
+        }
+    });
+
+    // Handle form submission
+    const onSubmit = async (data: z.infer<typeof RegisterSchema>) => {
         setLoading(true);
+        setError(null);
+        setSuccess("");
         try {
-            await register({email, password, user_name: username} as any);
-            router.push('/login');
-        } catch (err: any) {
-            setError("Registration failed: " + err.message);
+            const res = await register(data);
+            if (res.error) {
+                setError(res.error);
+                setLoading(false);
+                setSuccess("");
+            }
+            if (res.success) {
+                setSuccess(res.success);
+                setLoading(false);
+                setError("");
+                router.push('/login');
+            }
+        } catch (err) {
+            console.error("Error during registration: ", err);
+            setError("An error occurred during registration");
         } finally {
             setLoading(false);
         }
@@ -69,7 +93,8 @@ export const SignUpForm: React.FC = () => {
 
     return (
         <Box
-            component="section"
+            component="form"
+            onSubmit={form.handleSubmit(onSubmit)}
             sx={{
                 minWidth: { xs: '100%', md: '480px' },
                 display: 'flex',
@@ -112,8 +137,9 @@ export const SignUpForm: React.FC = () => {
                                 label="Name"
                                 placeholder="Enter your name"
                                 variant="outlined"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                {...form.register('name')}
+                                error={!!form.formState.errors.name}
+                                helperText={form.formState.errors.name?.message}
                                 required
                             />
                             <TextField
@@ -133,8 +159,9 @@ export const SignUpForm: React.FC = () => {
                                         fontWeight: 500,
                                     },
                                 }}
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                {...form.register('email')}
+                                error={!!form.formState.errors.email}
+                                helperText={form.formState.errors.email?.message}
                                 required
                             />
                             <Box sx={{ width: '100%' }}>
@@ -144,8 +171,9 @@ export const SignUpForm: React.FC = () => {
                                     placeholder="Create a password"
                                     type="password"
                                     variant="outlined"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    {...form.register('password')}
+                                    error={!!form.formState.errors.password}
+                                    helperText={form.formState.errors.password?.message}
                                     required
                                 />
                                 <Typography
@@ -156,15 +184,17 @@ export const SignUpForm: React.FC = () => {
                                         mt: 0.75,
                                     }}
                                 >
-                                    Must be at least 8 characters.
+                                    Must be at least 6 characters.
                                 </Typography>
                             </Box>
                         </Box>
 
                         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <PrimaryButton variant="contained" onClick={handleSubmit} disabled={loading}>
-                                Get started
+                            <PrimaryButton variant="contained" type="submit" disabled={loading}>
+                                {loading ? 'Signing up...' : 'Get started'}
                             </PrimaryButton>
+                            {error && <Typography color="error">{error}</Typography>}
+                            {success && <Typography color="success">{success}</Typography>}
                             <GoogleButton
                                 variant="outlined"
                                 startIcon={<img src="https://cdn.builder.io/api/v1/image/assets/TEMP/a41ff4463df85b4add89eb89c936d7f3a16142da?placeholderIfAbsent=true&apiKey=8ef08a3c60b44d4ba008c3e63d84c943" alt="Google logo" style={{ width: 24, height: 24 }} />}

@@ -4,33 +4,58 @@ import {useActionState, useState} from "react";
 import LogoHeader from "../logoHeader"
 import {Box, Button, Checkbox, Container, FormControlLabel, Stack, TextField, Typography,} from '@mui/material';
 import {useRouter} from "next/navigation";
-import {login} from "enigma/services/userServices";
-import GoogleAuthenticate from "enigma/services/googleLoginServices";
+import {login, register, loginGoogle} from "enigma/services/userServices";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {LoginSchema} from "enigma/schemas";
+import {zodResolver} from "@hookform/resolvers/zod";
+import Form from "next/form";
 
 export const LoginForm: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState("");
+    const [errorMessageGoogle, dispatchGoogle] = useActionState(loginGoogle, undefined);
     const router = useRouter();
-    const [errorMessageGoogle, dispatchGoogle] = useActionState(GoogleAuthenticate, undefined);
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
+
+    // Initialize the form with react-hook-form and zod
+    const form = useForm<z.infer<typeof LoginSchema>>({
+        resolver: zodResolver(LoginSchema),
+        defaultValues: {
+            email: '',
+            password: ''
+        }
+    });
+
+    // Handle form submission
+    const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
         setLoading(true);
+        setError(null);
+        setSuccess("");
         try {
-            await login(email, password);
-            router.push('/'); // Redirect to the home page or dashboard after successful login
-        } catch (err: any) {
-            setError("Login failed: " + err.message);
+            const res = await login(data);
+            if (res.error) {
+                setError(res.error);
+                setLoading(false);
+                setSuccess("");
+            }
+            if (res.success) {
+                setSuccess(res.success);
+                setLoading(false);
+                setError("");
+                router.push('/');
+            }
+        } catch (err) {
+            console.error("Error during logging in: ", err);
+            setError("An error occurred during logging in");
         } finally {
             setLoading(false);
         }
     };
+
     return (
         <>
             <Box
-                component="section"
                 sx={{
                     minWidth: {xs: '100%', md: '480px'},
                     display: 'flex',
@@ -56,6 +81,8 @@ export const LoginForm: React.FC = () => {
                     }}
                 >
                     <Box
+                        component="form"
+                        onSubmit={form.handleSubmit(onSubmit)}
                         sx={{
                             maxWidth: '360px',
                             width: '100%',
@@ -91,8 +118,9 @@ export const LoginForm: React.FC = () => {
                                                 fontWeight: 500,
                                             },
                                         }}
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        {...form.register("email")}
+                                        error={!!form.formState.errors.email}
+                                        helperText={form.formState.errors.email?.message}
                                         required
                                     />
                                     <TextField
@@ -113,8 +141,10 @@ export const LoginForm: React.FC = () => {
                                                 fontWeight: 500,
                                             },
                                         }}
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
+                                        {...form.register("password")}
+                                        error={!!form.formState.errors.password}
+                                        helperText={form.formState.errors.password?.message}
+                                        required
                                     />
                                 </Stack>
                                 <Box
@@ -175,9 +205,9 @@ export const LoginForm: React.FC = () => {
                                             },
                                         }}
                                         type="submit"
-                                        onClick={handleLogin}
+                                        disabled={loading}
                                     >
-                                        Sign in
+                                        {loading ? 'Signing in...' : 'Sign in'}
                                     </Button>
                                     <form action={dispatchGoogle}>
                                         <Button

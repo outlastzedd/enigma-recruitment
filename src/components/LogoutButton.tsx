@@ -1,12 +1,11 @@
 'use client';
 import { logout } from 'enigma/services/userServices';
-import { useRouter } from 'next/navigation';
+import {signOut} from "enigma/auth";
 
-export default function LogoutButton() {
-    const router = useRouter();
-    const handleLogout = () => {
+export default async function LogoutButton() {
+    const handleLogout = async () => {
+        await signOut({redirect: false});
         logout();
-        router.refresh(); // Refresh to update UI
     };
     return <button onClick={handleLogout}>Logout</button>;
 }

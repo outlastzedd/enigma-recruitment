@@ -1,4 +1,3 @@
-"use client";
 import React from 'react';
 import { Box } from '@mui/material';
 import { SignUpForm } from './signUpForm';

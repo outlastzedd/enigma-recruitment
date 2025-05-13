@@ -19,7 +19,7 @@ export default function UsersPage() {
                 const data = await getUsers();
                 setUsers(data);
             } catch (err) {
-                setError('Error fetching users');
+                setError('Error fetching users: ' + err);
             } finally {
                 setLoading(false);
             }

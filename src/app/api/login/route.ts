@@ -1,15 +1,16 @@
 // src/app/api/login/route.ts
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../../../prisma/prisma';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import {signIn} from "enigma/auth";
+import {AuthError} from "next-auth";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
     console.error('JWT_SECRET is not defined');
     throw new Error('JWT_SECRET is not defined');
 }
-const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
     try {
@@ -49,17 +50,30 @@ export async function POST(request: Request) {
                 {status: 401}
             );
         }
+        try {
+            await signIn('credentials', {
+                email: user.email,
+                password: password,
+                redirectTo: '/'
+            });
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+
 
         // JWT Token signature
-        const token = jwt.sign(
-            {userid: user.id, email: user.email, username: user.name, role: user.role},
-            JWT_SECRET,
-            {expiresIn: '1h'}
-        );
+        // const token = jwt.sign(
+        //     {userid: user.id, email: user.email, username: user.name, role: user.role},
+        //     JWT_SECRET,
+        //     {expiresIn: '1h'}
+        // );
 
         // Remove sensitive info before returning
-        const {password: _, ...userData} = user;
-        return NextResponse.json({...userData, token});
+        // const {password: _, ...userData} = user;
+        // return NextResponse.json({...userData, token});
+
+        return NextResponse.json({success: "Login successful", user: user}, {status: 200});
     } catch (error) {
         return NextResponse.json(
             {error: 'Internal server error.'},
