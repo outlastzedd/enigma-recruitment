@@ -86,7 +86,7 @@ export const login = async (data: z.infer<typeof LoginSchema>) => {
 
 export async function loginGoogle() {
     try {
-        await signIn('google', { redirectTo: '/'});
+        await signIn('google', {redirectTo: '/login/create-password'});
         return undefined;
     } catch (error) {
         if (error instanceof AuthError) {
@@ -163,5 +163,4 @@ export const register = async (data: z.infer<typeof RegisterSchema>) => {
 
 export async function logout() {
     Cookies.remove('token');
-
 }

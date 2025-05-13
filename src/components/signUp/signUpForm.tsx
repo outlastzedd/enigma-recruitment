@@ -1,5 +1,5 @@
 "use client";
-import React, {useState} from 'react';
+import React, {useActionState, useState} from 'react';
 import LogoHeader from "../logoHeader"
 import { useRouter } from 'next/navigation';
 import {
@@ -10,7 +10,7 @@ import {
     Container,
     styled,
 } from '@mui/material';
-import {register} from "enigma/services/userServices";
+import {register, loginGoogle} from "enigma/services/userServices";
 import {z} from 'zod';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {RegisterSchema} from "enigma/schemas";
@@ -53,6 +53,7 @@ export const SignUpForm: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState("");
+    const [errorMessageGoogle, dispatchGoogle] = useActionState(loginGoogle, undefined);
     const router = useRouter();
 
     // Initialize the form with react-hook-form and zod
@@ -93,8 +94,6 @@ export const SignUpForm: React.FC = () => {
 
     return (
         <Box
-            component="form"
-            onSubmit={form.handleSubmit(onSubmit)}
             sx={{
                 minWidth: { xs: '100%', md: '480px' },
                 display: 'flex',
@@ -131,7 +130,10 @@ export const SignUpForm: React.FC = () => {
                     </Typography>
 
                     <Box sx={{ mt: 4, width: '100%' }}>
-                        <Box component="form" sx={{ width: '100%', gap: 2.5, display: 'flex', flexDirection: 'column' }}>
+                        <Box component="form"
+                             onSubmit={form.handleSubmit(onSubmit)}
+                             sx={{ width: '100%', gap: 2.5, display: 'flex', flexDirection: 'column' }}
+                        >
                             <TextField
                                 fullWidth
                                 label="Name"
@@ -187,20 +189,28 @@ export const SignUpForm: React.FC = () => {
                                     Must be at least 6 characters.
                                 </Typography>
                             </Box>
-                        </Box>
-
-                        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <PrimaryButton variant="contained" type="submit" disabled={loading}>
                                 {loading ? 'Signing up...' : 'Get started'}
                             </PrimaryButton>
                             {error && <Typography color="error">{error}</Typography>}
                             {success && <Typography color="success">{success}</Typography>}
-                            <GoogleButton
-                                variant="outlined"
-                                startIcon={<img src="https://cdn.builder.io/api/v1/image/assets/TEMP/a41ff4463df85b4add89eb89c936d7f3a16142da?placeholderIfAbsent=true&apiKey=8ef08a3c60b44d4ba008c3e63d84c943" alt="Google logo" style={{ width: 24, height: 24 }} />}
-                            >
-                                Sign up with Google
-                            </GoogleButton>
+                        </Box>
+
+                        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <form action={dispatchGoogle}>
+                                <GoogleButton
+                                    variant="outlined"
+                                    type="submit"
+                                    startIcon={<img src="https://cdn.builder.io/api/v1/image/assets/TEMP/a41ff4463df85b4add89eb89c936d7f3a16142da?placeholderIfAbsent=true&apiKey=8ef08a3c60b44d4ba008c3e63d84c943" alt="Google logo" style={{ width: 24, height: 24 }} />}
+                                >
+                                    Sign up with Google
+                                </GoogleButton>
+                            </form>
+                            {(error || errorMessageGoogle) && (
+                                <Typography color="error" sx={{fontSize: '14px'}}>
+                                    {error || errorMessageGoogle}
+                                </Typography>
+                            )}
                         </Box>
 
                         <Box
