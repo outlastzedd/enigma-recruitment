@@ -1,6 +1,7 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LogoHeader from "../logoHeader";
+import { JustLogoHeader } from "../logoHeader";
 import {
     Box,
     List,
@@ -18,20 +19,48 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { Search } from "@mui/icons-material";
+import {signOut} from "next-auth/react";
+import {Session} from "next-auth";
 
-export const SidebarNavigation = () => {
+export const SidebarNavigation = ({session}: {session: Session | null}) => {
     const theme = useTheme();
-    const [isSignedUp, setIsSignedUp] = useState(false);
+    const [isSessionValid, setIsSessionValid] = useState(false); // State to track if a session is valid
     const [isCollapsed, setIsCollapsed] = useState(false); // State for collapsed mode
+    const [name, setName] = useState<string | null>(null);
+    const [email, setEmail] = useState<string | null>(null);
+    const [image, setImage] = useState<string | undefined>("/Avatar.png");
 
-    const handleSignUp = () => {
-        setIsSignedUp(true);
+    // Check if the session is valid and set the state accordingly
+    useEffect(() => {
+        if (session) {
+            setIsSessionValid(true);
+            setName(session?.user?.name as string);
+            setEmail(session?.user?.email as string);
+            if (session?.user?.image) {
+                setImage(session?.user?.image as string)
+            } else {
+                setImage("/Avatar.png");
+            }
+        }
+    }, [session]);
+
+    // Set the session to be invalid and remove all data when signing out
+    const handleSignOut = async () => {
+        setIsSessionValid(false);
+        setName(null);
+        setEmail(null);
+        setImage("");
+        await signOut({redirectTo: "/"});
     };
 
-    const handleSignOut = () => {
-        setIsSignedUp(false);
-    };
+    // const handleLogin = async () => {
+    //     if (session) setIsSessionValid(true);
+    //     setName(session?.user?.name as string);
+    //     setEmail(session?.user?.email as string);
+    //     setImage(session?.user?.image as string);
+    // };
 
+    // State để theo dõi trạng thái slider (đóng/mở)
     const toggleSidebar = () => {
         setIsCollapsed((prev) => !prev); // Toggle collapsed state
     };
@@ -71,9 +100,9 @@ export const SidebarNavigation = () => {
                 display: { xs: "none", sm: "flex" },
                 flexDirection: "column",
                 backgroundColor: theme.palette.background.paper,
-                width: isCollapsed ? '6%' : 'auto', // Narrow width when collapsed
-                transition: "width 0.3s ease", // Smooth width transition
-                overflow: "hidden", // Prevent horizontal scroll
+                width: isCollapsed ? '6%' : '19%', // Narrow width when collapsed
+                transition: "width 0.3s ease, top 0.3s ease, max-height 0.3s ease",
+                willChange: "top, max-height, width",
                 '@media (max-width: 991px)': {
                     display: 'none'
                 },
@@ -85,9 +114,10 @@ export const SidebarNavigation = () => {
                     justifyContent: isCollapsed ? "center" : "space-between",
                     alignItems: "center",
                     p: isCollapsed ? 2 : 0,
+                    transition: "padding 0.7s ease",
                 }}
             >
-                <LogoHeader />
+                {isCollapsed ? <JustLogoHeader /> : <LogoHeader />}
                 {!isCollapsed && (
                     <IconButton
                         onClick={toggleSidebar}
@@ -100,6 +130,7 @@ export const SidebarNavigation = () => {
                             minWidth: 40,
                             height: 40,
                             backgroundColor: "white",
+                            transition: "opacity 0.3s ease",
                             "&:hover": {
                                 backgroundColor: theme.palette.grey[100],
                             },
@@ -113,17 +144,21 @@ export const SidebarNavigation = () => {
                     <IconButton
                         onClick={toggleSidebar}
                         sx={{
+                            position: "absolute",
+                            left: "4.5%",
+                            border: "1px solid #D0D5DD",
                             p: 1,
                             minWidth: 40,
                             height: 40,
                             backgroundColor: "white",
+                            transition: "opacity 0.3s ease",
                             "&:hover": {
                                 backgroundColor: theme.palette.grey[100],
                             },
                         }}
                         aria-label="Toggle sidebar"
                     >
-                        <Image src="/expandbar.svg" alt="expand" width={24} height={24} />
+                        <Image src="/showbar1.svg" alt="expand" width={24} height={24} />
                     </IconButton>
                 )}
             </Box>
@@ -178,40 +213,41 @@ export const SidebarNavigation = () => {
                 ))}
             </List>
 
-            <Box sx={{ mt: isCollapsed ? 4 : 7, flexGrow: 2 }}>
-                {!isCollapsed && (
-                    <List>
-                        {footerItems.map((item, index) => (
-                            <ListItemButton
-                                key={index}
-                                sx={{
-                                    borderRadius: 1,
-                                    my: 1,
-                                    mx: 1,
-                                }}
-                            >
-                                <ListItemIcon sx={{ color: "#344054" }}>{item.icon}</ListItemIcon>
+            <Box sx={{ mt: isCollapsed ? 7 : 7, flexGrow: 2 }}>
+                <List>
+                    {footerItems.map((item, index) => (
+                        <ListItemButton
+                            key={index}
+                            sx={{
+                                borderRadius: 2,
+                                my: 1,
+                                mx: isCollapsed ? 0 : 1,
+                                justifyContent: isCollapsed ? "center" : "flex-start",
+                            }}
+                        >
+
+                            <ListItemIcon sx={{ color: "#344054", minWidth: isCollapsed ? 0 : 40, }}>{item.icon}</ListItemIcon>
+                            {!isCollapsed && (
                                 <ListItemText primary={item.text} sx={{ color: "#344054" }} />
-                            </ListItemButton>
-                        ))}
-                    </List>
-                )}
+                            )}
+                        </ListItemButton>
+                    ))}
+                </List>
 
                 {!isCollapsed && <Divider sx={{ m: 3 }} />}
 
                 {!isCollapsed ? (
-                    !isSignedUp ? (
+                    !isSessionValid ? (
                         <Box sx={{ mt: 2, m: 2 }}>
                             <Button
                                 variant="contained"
                                 fullWidth
                                 sx={{ mb: 1, bgcolor: "#2494B6" }}
-                                onClick={handleSignUp}
                                 href="/register"
                             >
                                 Sign up
                             </Button>
-                            <Button variant="outlined" fullWidth href="/login">
+                            <Button href="/login" variant="outlined" fullWidth>
                                 Sign in
                             </Button>
                         </Box>
@@ -225,23 +261,23 @@ export const SidebarNavigation = () => {
                                 borderRadius: 1,
                             }}
                         >
-                            <Avatar alt="Olivia Rhye" src="/Avatar.png" sx={{ width: 40, height: 40 }} />
+                            <Avatar alt={`Profile picture of ${name}`} src={image} sx={{ width: 40, height: 40 }} />
                             <Box sx={{ flexGrow: 1 }}>
                                 <Typography variant="subtitle1" color="#101828" sx={{ fontWeight: 600 }}>
-                                    Olivia Rhye
+                                    {name}
                                 </Typography>
                                 <Typography variant="body2" color="#475467">
-                                    olivia@untitledui.com
+                                    {email}
                                 </Typography>
                             </Box>
-                            <IconButton size="small" sx={{ color: "#4B5E7D" }} onClick={handleSignOut}>
+                            <IconButton type="submit" onClick={handleSignOut} style={{ background: "none", border: "none", padding: 0 }}>
                                 <Image src="/exit.svg" alt="exit" width={24} height={24} />
                             </IconButton>
                         </Box>
                     )
                 ) : (
-                    <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                        <Avatar alt="Olivia Rhye" src="/Avatar.png" sx={{ width: 40, height: 40 }} />
+                    <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                        <Avatar alt={`Profile picture of ${name}`} src={image} sx={{ width: 40, height: 40 }} />
                     </Box>
                 )}
             </Box>

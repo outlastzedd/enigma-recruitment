@@ -24,7 +24,7 @@ export default function UserPage() {
     useEffect(() => {
         async function fetchUser() {
             try {
-                const data = await getUser(userid);
+                const data = await getUser(String(userid));
                 setUser(data);
             } catch (err) {
                 setError('Error fetching users');

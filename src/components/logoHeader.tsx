@@ -51,4 +51,20 @@ const LogoHeader = () => {
 
 };
 
+export const JustLogoHeader = () => {
+    return (
+        <Box >
+            <Box>
+                <Image
+                    src="/logoPic.svg"
+                    alt="Career Logo"
+                    width={135}
+                    height={28}
+                />
+            </Box>
+        </Box >
+    );
+
+};
+
 export default LogoHeader;

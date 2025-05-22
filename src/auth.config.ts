@@ -1,6 +1,5 @@
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import Discord from "next-auth/providers/discord";
 import Facebook from "next-auth/providers/facebook";
 import {CredentialsSignin, NextAuthConfig} from "next-auth";
 import {prisma} from "../prisma/prisma";
@@ -40,5 +39,6 @@ export default {
                 return null;
             }
         })
-    ]
+    ],
+    secret: process.env.AUTH_SECRET
 } satisfies NextAuthConfig;

@@ -1,11 +1,9 @@
-"use client";
 import * as React from "react";
 import { Box, useTheme } from "@mui/material";
-import { SidebarNavigation } from "./sideBarNavigation";
-import { MainContent } from "./mainContent";
-import {Session} from "next-auth";
+import { SidebarNavigation } from "../home/sideBarNavigation";
+import { MainContent } from "./maincontent";
 
-export default function HomePage({session}: {session: Session | null}) {
+export default function TaskPage() {
     const theme = useTheme();
 
     return (
@@ -29,7 +27,7 @@ export default function HomePage({session}: {session: Session | null}) {
                     },
                 }}
             >
-                <SidebarNavigation session={session}/>
+                <SidebarNavigation />
                 <MainContent />
             </Box>
 

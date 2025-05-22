@@ -1,9 +1,8 @@
 import * as React from "react";
-import SuggestedJobCard from "../suggestJobCard";
 import SectionTitle from "../font/sectionTitle";
 import Image from 'next/image';
 import SearchIcon from '@mui/icons-material/Search';
-import JobCard from "./JobCard";
+import JobCard from "../home/JobCard";
 import LogoHeader from "../logoHeader";
 
 import {
@@ -191,7 +190,7 @@ export const MainContent = () => {
             }}>
                 {/* Left Column */}
                 <Box sx={{
-                    width: '70%',
+                    width: '100%',
                     '@media (max-width: 991px)': {
                         width: '100%',
                         pr: 2
@@ -253,30 +252,15 @@ export const MainContent = () => {
                                         gap: 3,
                                     }}
                                 >
-                                    {jobData.slice(rowIndex * 2, rowIndex * 2 + 2).map((job) => (
+                                    {jobData.slice(rowIndex * 1, rowIndex * 3 + 3).map((job) => (
                                         <JobCard key={job} />
                                     ))}
                                 </Box>
                             ))}
                         </Box>
                     </Box>
-
-                </Box>
-
-                {/* Right Column */}
-                <Box sx={{ mr: 2 }}>
-                    <SectionTitle title="Suggested" showOptions />
-
-                    <Box sx={{
-                        mt: 2
-                    }}>
-                        {[1, 2, 3, 4, 5].map((job) => (
-                            <SuggestedJobCard />
-                        ))}
-                    </Box>
                 </Box>
             </Box >
-
         </Box >
     );
 };

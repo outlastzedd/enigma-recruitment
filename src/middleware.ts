@@ -1,36 +1,54 @@
 // src/middleware.ts - Protect routes from unauthorized access
-// import { NextResponse } from 'next/server';
-// import type { NextRequest } from 'next/server';
-// //import jwt from 'jsonwebtoken';
-// import {jwtVerify} from "jose";
-//
-// const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
-//
-// export async function middleware(request: NextRequest) {
-//     // Check whether the URL is going to admin, the regex will match /admin and /admin/anything to avoid false positives
-//     if (/^\/admin(\/|$)/.test(request.nextUrl.pathname)) {
-//         const authHeader = request.headers.get('authorization');
-//         const token = authHeader?.split(' ')[1] || request.cookies.get('token')?.value;
-//         if (!token) {
-//             console.error('No token provided');
-//             return NextResponse.redirect(new URL('/forbidden', request.url));
-//         }
-//         if (!JWT_SECRET) {
-//             console.error('JWT_SECRET is not defined');
-//             return NextResponse.json({error: 'Internal server error'}, {status: 500});
-//         }
-//         // Extract payload from the token and filter by role
-//         try {
-//             const {payload} = await jwtVerify(token, JWT_SECRET);
-//             if (payload.role !== 'admin' || !payload) {
-//                 console.error('Invalid token or insufficient permissions');
-//                 return NextResponse.redirect(new URL('/forbidden', request.url));
-//             }
-//         } catch (err) {
-//             console.error('Token verification failed:', err);
-//             return NextResponse.redirect(new URL('/forbidden', request.url));
-//         }
-//     }
-//     return NextResponse.next();
-// }
-export {auth as middleware} from "enigma/auth";
+import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
+import authConfig from "./auth.config";
+import {getUsers} from "enigma/services/userServices";
+
+const privateRoutes = ["/admin"];
+const loggedInRoutes = ["/home", "/profile"];
+const credentialRoutes = ["/login"];
+const publicRoutes = ["/", "/about", "/contact-us", "/login/new-verification", "/register"];
+
+export async function middleware(req: NextRequest) {
+    // TODO: Change ${url} to enigma-recruitment.com when in production
+    const url = "http://localhost:3000";
+    const { pathname } = req.nextUrl;
+
+    // Get the token (includes custom fields like role)
+    const token = await getToken({ req, secret: authConfig.secret });
+
+    const isLoggedIn = !!token;
+    const isPrivateRoute = privateRoutes.includes(pathname);
+    const isLoggedInRoute = loggedInRoutes.includes(pathname);
+    const isCredentialRoute = credentialRoutes.includes(pathname);
+    const isAPIRoute = pathname.includes("/api");
+    const isPublicRoute = publicRoutes.includes(pathname);
+    const isCreatePasswordRoute = pathname.includes("/login/create-password");
+
+    if (isAPIRoute || isPublicRoute) return;
+    // if (isLoggedIn && isCreatePasswordRoute) {
+    //     return NextResponse.redirect(`${url}/`);
+    // }
+    if (isLoggedIn && isCredentialRoute) {
+        return NextResponse.redirect(`${url}/`);
+    }
+    if (!isLoggedIn && isCredentialRoute) {
+        return;
+    }
+    if (!isLoggedIn && isLoggedInRoute) {
+        return NextResponse.redirect(`${url}/login`);
+    }
+    // Protect admin routes
+    if (isPrivateRoute && token?.role !== "admin") {
+        return NextResponse.redirect(`${url}/forbidden`);
+    }
+    // Allow admin through
+    if (isPrivateRoute && token?.role === "admin") {
+        return;
+    }
+}
+
+export const config = {
+    matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+};

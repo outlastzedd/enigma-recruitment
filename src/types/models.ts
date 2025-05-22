@@ -91,3 +91,10 @@ export interface JobApplication {
         };
     };
 }
+
+export interface VerificationToken {
+    identifier: string;
+    email: string;
+    token: string;
+    expires: Date;
+}

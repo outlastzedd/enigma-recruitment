@@ -42,11 +42,14 @@ export const LoginForm: React.FC = () => {
                 setSuccess(res.success);
                 setLoading(false);
                 setError("");
-                router.push('/');
             }
         } catch (err) {
-            console.error("Error during logging in: ", err);
-            setError("An error occurred during logging in");
+            if (err !== "NEXT_REDIRECT") {
+                console.log("Error during logging in: ", err);
+            } else {
+                console.error("Error during logging in: ", err);
+                setError("An error occurred during logging in: " + err);
+            }
         } finally {
             setLoading(false);
         }
