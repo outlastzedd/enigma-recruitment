@@ -22,7 +22,7 @@ import { Search } from "@mui/icons-material";
 import {signOut} from "next-auth/react";
 import {Session} from "next-auth";
 
-export const SidebarNavigation = ({session}: {session: Session | null}) => {
+export const SidebarNavigation = ({session}: {session?: Session | null}) => {
     const theme = useTheme();
     const [isSessionValid, setIsSessionValid] = useState(false); // State to track if a session is valid
     const [isCollapsed, setIsCollapsed] = useState(false); // State for collapsed mode

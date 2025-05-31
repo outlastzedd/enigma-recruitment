@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { Box, ThemeProvider, Divider } from '@mui/material';
 import { SidebarNavigation } from '../home/sideBarNavigation';
@@ -14,6 +15,7 @@ import LogoHeader from "../logoHeader";
 import Image from 'next/image';
 
 const LandingPage: React.FC = () => {
+    console.log("LandingPage rendered");
     return (
         <ThemeProvider theme={theme}>
             <Box component="main" sx={{
@@ -21,7 +23,7 @@ const LandingPage: React.FC = () => {
                 alignItems: "flex-start",
                 justifyContent: "flex-start",
             }}>
-                <SidebarNavigation />
+                <SidebarNavigation/>
                 <Box sx={{
                     pt: 10,
                     width: '100%',

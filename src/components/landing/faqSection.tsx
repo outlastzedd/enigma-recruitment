@@ -8,7 +8,6 @@ import {
     AccordionSummary,
     AccordionDetails,
 } from '@mui/material';
-import Image from 'next/image';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const faqItems = [

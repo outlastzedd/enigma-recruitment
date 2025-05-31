@@ -24,14 +24,10 @@ export async function middleware(req: NextRequest) {
     const isCredentialRoute = credentialRoutes.includes(pathname);
     const isAPIRoute = pathname.includes("/api");
     const isPublicRoute = publicRoutes.includes(pathname);
-    const isCreatePasswordRoute = pathname.includes("/login/create-password");
 
     if (isAPIRoute || isPublicRoute) return;
-    // if (isLoggedIn && isCreatePasswordRoute) {
-    //     return NextResponse.redirect(`${url}/`);
-    // }
     if (isLoggedIn && isCredentialRoute) {
-        return NextResponse.redirect(`${url}/`);
+        return NextResponse.redirect(`${url}/home`);
     }
     if (!isLoggedIn && isCredentialRoute) {
         return;

@@ -98,7 +98,7 @@ export const login = async (data: z.infer<typeof LoginSchema>) => {
         await signIn('credentials', {
             email: existingUser.email,
             password: password,
-            redirectTo: '/'
+            redirectTo: '/home'
         });
     } catch (error) {
         if (error instanceof AuthError) {
@@ -119,7 +119,7 @@ export const login = async (data: z.infer<typeof LoginSchema>) => {
 
 export async function loginGoogle() {
     try {
-        await signIn('google', {redirectTo: '/login/create-password'});
+        await signIn('google', {redirectTo: '/home'});
         return undefined;
     } catch (error) {
         if (error instanceof AuthError) {
@@ -213,7 +213,7 @@ export async function createPass(email: string, data: z.infer<typeof CreatePassw
         await signIn('credentials', {
             email: existingUser.email,
             password: password,
-            redirectTo: '/'
+            redirectTo: '/home'
         });
     } catch (error) {
         if (error instanceof AuthError) {
