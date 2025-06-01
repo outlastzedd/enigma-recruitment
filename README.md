@@ -17,3 +17,4 @@ npx prisma migrate dev --name init
 # add data from query file (add each table data seperately)
 # after finish all those steps, the project with database structure and database connection are all done.
 ```
+Test Update Channel
